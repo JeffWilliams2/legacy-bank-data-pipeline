@@ -6,15 +6,15 @@
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python)
 ![Tests](https://img.shields.io/badge/dbt%20tests-14%20passing-brightgreen)
 
-A **medallion (bronze → silver → gold)** dbt pipeline that simulates migrating a legacy core-banking system into a modern warehouse. Produces four analytics marts covering regulatory compliance (BSA/AML, FDIC) and retail banking ops (branch performance, customer engagement).
+A **medallion (bronze → silver → gold)** dbt pipeline simulating a legacy core-banking migration into a modern warehouse. Produces four analytics marts covering regulatory compliance (BSA/AML, FDIC) and retail banking ops (branch performance, customer engagement), with a Streamlit dashboard on top.
 
-Runs fully local on DuckDB with no cloud account or credentials required. The same models deploy to Snowflake by swapping one line in `profiles.yml`.
+Runs fully local on DuckDB — no cloud account or credentials required. The same models deploy to Snowflake by swapping one line in `profiles.yml`.
 
 ---
 
 ## Why this project
 
-Banks run legacy PostgreSQL/Oracle core systems and are gradually migrating to cloud warehouses for regulatory reporting and analytics. I built this to demonstrate that full migration pattern end-to-end — dirty source data, compliance logic, and a reporting layer — using the same stack I work with in production (dbt, Snowflake, Airflow).
+Banks run legacy PostgreSQL/Oracle core systems and are gradually migrating to cloud warehouses for regulatory reporting and analytics. I built this to demonstrate that full migration pattern end-to-end — dirty source data, compliance logic, and a reporting layer — using the same stack I work with professionally (dbt, Snowflake, Airflow, GitHub Actions).
 
 The domain detail (CTR thresholds, structuring detection, FDIC coverage math, debit/credit sign conventions) comes from time spent at JPMorgan Chase and Charles Schwab. *(Those were client-facing roles — the engineering here is my own.)*
 
@@ -40,35 +40,51 @@ Full design notes in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
-## Gold marts
-
-| Mart | Business question answered |
-|------|---------------------------|
-| `gold_aml_flags` | Which transactions trigger a CTR (>$10k) or show structuring patterns? |
-| `gold_fdic_coverage` | How much of each customer's deposits exceed the $250k FDIC limit? |
-| `gold_customer_engagement` | Which customers are active, passive, or at-risk based on recency + frequency? |
-| `gold_executive_summary` | What are total balances, account counts, and net flow by branch and product? |
-
-On the sample dataset: **30 CTR-reportable transactions**, **15 structuring clusters**, **14/14 data-quality tests passing**.
-
----
-
-## Lineage graph
-
-![Lineage graph: raw sources → bronze → silver → gold marts](lineage_graph.png)
-
-Generated from the live warehouse — see [SETUP.md](SETUP.md#6-optional-generate-the-docs-site) for instructions.
-
----
-
 ## Dashboard
 
-Four-tab Streamlit app reading directly from `warehouse.duckdb`:
+<p>
+  <img src="docs/AML-BSA.png" width="49%" alt="AML/BSA Monitoring" />
+  <img src="docs/FDIC-Coverage.png" width="49%" alt="FDIC Coverage" />
+</p>
+<p>
+  <img src="docs/Branch-Summary.png" width="49%" alt="Branch Executive Summary" />
+  <img src="docs/Customer-Engagement.png" width="49%" alt="Customer Engagement" />
+</p>
+
+Four tabs reading directly from `warehouse.duckdb`:
+
+| Tab | What it shows |
+|-----|---------------|
+| **AML / BSA Monitoring** | CTR-reportable transactions (>$10k) and structuring clusters flagged, with full transaction detail |
+| **FDIC Coverage** | Customers exceeding the $250k insured limit, total uninsured exposure, coverage split |
+| **Branch Summary** | Total deposits, account count, and net transaction flow by branch and product type |
+| **Customer Engagement** | 0–100 engagement score by recency + frequency, ACTIVE / PASSIVE / AT_RISK tiers, at-risk outreach list |
 
 ```bash
 pip install streamlit plotly pandas
 streamlit run dashboard/app.py
 ```
+
+---
+
+## Lineage graph
+
+![dbt lineage: raw sources → bronze → silver → gold](docs/lineage_graph.png)
+
+Generated from the live warehouse — see [SETUP.md](SETUP.md#6-optional-generate-the-docs-site) for instructions.
+
+---
+
+## Gold marts
+
+| Mart | Business question |
+|------|-------------------|
+| `gold_aml_flags` | Which transactions trigger a CTR (>$10k) or show structuring patterns? |
+| `gold_fdic_coverage` | How much of each customer's deposits exceed the $250k FDIC limit? |
+| `gold_customer_engagement` | Which customers are active, passive, or at-risk based on recency + frequency? |
+| `gold_executive_summary` | Total balances, account counts, and net flow by branch and product? |
+
+On the sample dataset: **30 CTR-reportable transactions**, **15 structuring clusters**, **14/14 data-quality tests passing**.
 
 ---
 
@@ -80,11 +96,11 @@ streamlit run dashboard/app.py
 | **DuckDB** | Local warehouse — zero setup, runs in-process |
 | **Snowflake** | Production target — profile included, one-line swap |
 | **Apache Airflow** | Orchestration DAG (`airflow/dags/`) |
-| **Airbyte** | Documented CDC path from PostgreSQL source |
+| **Airbyte** | Documented CDC ingestion path from PostgreSQL |
 | **Streamlit + Plotly** | Analytics dashboard over the gold layer |
 | **GitHub Actions** | CI — runs `seed → run → test` on every push |
 
-> All data is synthetic, generated by `scripts/generate_data.py` with a fixed random seed. The generator deliberately injects the kind of messiness (mixed date formats, dirty money strings, legacy codes) that shows up in real banking exports.
+> All data is synthetic, generated by `scripts/generate_data.py` with a fixed random seed. The generator deliberately injects mixed date formats, dirty money strings, and legacy account codes — the kind of messiness that shows up in real banking exports.
 
 ---
 
@@ -107,22 +123,23 @@ streamlit run dashboard/app.py
 ```
 legacy-bank-data-pipeline/
 ├── README.md
-├── ARCHITECTURE.md           ← design decisions + why each layer is built the way it is
-├── SETUP.md                  ← step-by-step run guide including Snowflake swap
+├── ARCHITECTURE.md           ← design decisions and layer reasoning
+├── SETUP.md                  ← step-by-step run guide + Snowflake swap
 ├── dbt_project.yml
 ├── profiles.yml              ← DuckDB (default) + Snowflake (commented out)
 ├── requirements.txt
-├── scripts/
-│   ├── generate_data.py      ← synthetic banking data with intentional messiness
-│   └── generate_catalog.py   ← builds target/catalog.json for dbt docs site
 ├── models/
 │   ├── bronze/               ← raw landing + audit metadata
 │   ├── silver/               ← cleaned & standardized
 │   └── gold/                 ← compliance and analytics marts
 ├── macros/                   ← date parsing, money cleaning, account code decoding
 ├── seeds/                    ← generated raw CSVs (the simulated legacy export)
+├── scripts/
+│   ├── generate_data.py      ← synthetic banking data with intentional messiness
+│   └── generate_catalog.py   ← builds target/catalog.json for dbt docs site
 ├── dashboard/
 │   └── app.py                ← Streamlit dashboard
+├── docs/                     ← screenshots for README
 ├── airflow/
 │   └── dags/                 ← example Airflow orchestration DAG
 └── .github/

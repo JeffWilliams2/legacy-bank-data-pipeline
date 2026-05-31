@@ -1,8 +1,7 @@
 # Architecture Guide
 
-This document explains *why* the pipeline is built the way it is — the part
-interviewers actually probe. Anyone can wire up dbt; the value is understanding
-the design decisions.
+Design decisions behind the pipeline — why each layer is structured the way it
+is, and the banking-specific logic that drives the gold marts.
 
 ---
 
