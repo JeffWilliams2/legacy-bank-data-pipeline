@@ -1,6 +1,6 @@
 # Legacy Bank Data Migration Pipeline
 
-[![Pipeline CI](https://github.com/jeffwilliams2/legacy-bank-data-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/jeffwilliams2/legacy-bank-data-pipeline/actions/workflows/ci.yml)
+[![Pipeline CI](https://github.com/JeffWilliams2/legacy-bank-data-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/JeffWilliams2/legacy-bank-data-pipeline/actions/workflows/ci.yml)
 ![dbt](https://img.shields.io/badge/dbt-1.10-orange?logo=dbt)
 ![DuckDB](https://img.shields.io/badge/DuckDB-embedded-yellow?logo=duckdb)
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python)
