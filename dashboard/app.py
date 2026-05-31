@@ -4,8 +4,14 @@ Legacy Bank Pipeline · Streamlit Dashboard
 Reads directly from warehouse.duckdb (the gold schema).
 Run from the project root:
     streamlit run dashboard/app.py
+
+On Streamlit Community Cloud the warehouse doesn't exist yet, so bootstrap()
+generates the seed data and runs the dbt pipeline automatically on first load.
 """
 
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import duckdb
@@ -13,7 +19,8 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-DB = Path(__file__).parent.parent / "warehouse.duckdb"
+ROOT = Path(__file__).parent.parent
+DB = ROOT / "warehouse.duckdb"
 
 st.set_page_config(
     page_title="Legacy Bank Pipeline",
@@ -22,17 +29,26 @@ st.set_page_config(
 )
 
 
+@st.cache_resource(show_spinner="Building warehouse — this takes about 30 seconds on first load…")
+def bootstrap():
+    """Generate seed data and run dbt pipeline if warehouse doesn't exist."""
+    if DB.exists():
+        return
+    env = {**os.environ, "DBT_PROFILES_DIR": str(ROOT)}
+    subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "generate_data.py")], check=True
+    )
+    for cmd in (["dbt", "seed"], ["dbt", "run"]):
+        subprocess.run(cmd, cwd=str(ROOT), env=env, check=True)
+
+
+bootstrap()
+
+
 @st.cache_data
 def query(sql: str) -> pd.DataFrame:
     con = duckdb.connect(str(DB), read_only=True)
     return con.execute(sql).df()
-
-
-if not DB.exists():
-    st.error(
-        "warehouse.duckdb not found. Run `dbt seed && dbt run` from the project root first."
-    )
-    st.stop()
 
 # ── header ────────────────────────────────────────────────────────────────────
 st.title("🏦 Legacy Bank Data Pipeline")
