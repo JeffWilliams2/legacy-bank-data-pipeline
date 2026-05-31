@@ -34,12 +34,15 @@ def bootstrap():
     """Generate seed data and run dbt pipeline if warehouse doesn't exist."""
     if DB.exists():
         return
+    # Resolve dbt binary from the same venv as the running Python so it works
+    # both locally and on Streamlit Community Cloud (where PATH may not have dbt).
+    dbt_bin = Path(sys.executable).parent / "dbt"
     env = {**os.environ, "DBT_PROFILES_DIR": str(ROOT)}
     subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "generate_data.py")], check=True
     )
-    for cmd in (["dbt", "seed"], ["dbt", "run"]):
-        subprocess.run(cmd, cwd=str(ROOT), env=env, check=True)
+    for args in (["seed"], ["run"]):
+        subprocess.run([str(dbt_bin)] + args, cwd=str(ROOT), env=env, check=True)
 
 
 bootstrap()
