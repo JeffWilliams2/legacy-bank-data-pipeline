@@ -38,7 +38,7 @@ if not DB.exists():
 st.title("🏦 Legacy Bank Data Pipeline")
 st.caption(
     "Medallion pipeline · bronze → silver → gold · "
-    "dbt Core + DuckDB · [GitHub](https://github.com/JeffWilliams2/legacy-bank-data-pipeline)"
+    "dbt Core + DuckDB · [GitHub](https://github.com/jeffwilliams2/legacy-bank-data-pipeline)"
 )
 
 TIER_COLORS = {"ACTIVE": "#52b788", "PASSIVE": "#f4a261", "AT_RISK": "#e05252"}

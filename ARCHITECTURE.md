@@ -40,11 +40,11 @@ select
 from {{ source(...) }}
 ```
 
-**The key insight: bronze isn't a staging area you delete — it's your audit
-trail.** In a regulated industry, being able to prove exactly what came out of
-the source system, and when, isn't optional. If a regulator or auditor asks
-"what did the core system report on March 4th," bronze is the answer. Every
-transformation downstream is reproducible from it.
+Bronze isn't a staging area you delete — it's the audit trail. In a regulated
+industry, being able to prove exactly what came out of the source system, and
+when, is a compliance requirement. If a regulator or auditor asks "what did the
+core system report on March 4th," bronze is the answer. Every transformation
+downstream is reproducible from it.
 
 It's materialized as **views** because it's cheap, always reflects the latest
 seed/ingest, and we don't query it directly in hot paths.
@@ -89,9 +89,9 @@ case when txn_code in ('DR','ATM','FEE','WIRE')
 end as signed_amount
 ```
 
-Now net flow and balances aggregate correctly. *(Verified: debit average is
-negative, credit average positive.)* This is exactly the kind of domain rule a
-generic engineer wouldn't know to apply.
+Now net flow and balances aggregate correctly. This is the kind of rule that
+isn't in the schema — it comes from understanding how core banking systems
+actually record transactions, which I picked up working at JPMorgan.
 
 ### 4. Legacy code decoding
 3-letter account-type codes (`CHK`, `SAV`, `MMA`, `CD`, `LOC`, `IRA`) are
