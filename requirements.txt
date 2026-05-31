@@ -1,0 +1,7 @@
+dbt-core>=1.7
+dbt-duckdb>=1.7
+duckdb>=0.10
+streamlit>=1.35
+plotly>=5.0
+pandas>=2.0
+# For the Snowflake production target, also: dbt-snowflake

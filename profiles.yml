@@ -1,0 +1,28 @@
+# profiles.yml
+# -----------------------------------------------------------------------------
+# Two targets are defined:
+#   - dev  : DuckDB, runs locally with ZERO cloud setup. This is the default.
+#   - prod : Snowflake. Uncomment and fill in to run the SAME models in the
+#            cloud. Nothing about the models changes — only this connection.
+#
+# This is the whole point of dbt: warehouse-portable transformations.
+# -----------------------------------------------------------------------------
+legacy_bank_pipeline:
+  target: dev
+  outputs:
+
+    dev:
+      type: duckdb
+      path: "warehouse.duckdb"
+      threads: 4
+
+    # prod:
+    #   type: snowflake
+    #   account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+    #   user: "{{ env_var('SNOWFLAKE_USER') }}"
+    #   password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+    #   role: TRANSFORMER
+    #   database: BANK_ANALYTICS
+    #   warehouse: TRANSFORMING
+    #   schema: PUBLIC
+    #   threads: 8

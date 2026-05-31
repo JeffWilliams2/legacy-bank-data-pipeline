@@ -1,0 +1,42 @@
+name: Pipeline CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  dbt:
+    name: dbt seed → run → test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dbt-duckdb
+        run: pip install dbt-duckdb
+
+      - name: Generate seed data
+        run: python scripts/generate_data.py
+
+      - name: dbt seed  (load raw CSVs)
+        run: dbt seed
+        env:
+          DBT_PROFILES_DIR: ${{ github.workspace }}
+
+      - name: dbt run  (12 models · bronze → silver → gold)
+        run: dbt run
+        env:
+          DBT_PROFILES_DIR: ${{ github.workspace }}
+
+      - name: dbt test  (14 data-quality tests)
+        run: dbt test
+        env:
+          DBT_PROFILES_DIR: ${{ github.workspace }}

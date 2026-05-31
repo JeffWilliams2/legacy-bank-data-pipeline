@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Simulated legacy core-banking export (loaded via dbt seed; in production this is Airbyte CDC from PostgreSQL)."
+    schema: raw
+    tables:
+      - name: raw_accounts
+      - name: raw_transactions
+      - name: raw_customers
+      - name: raw_branches

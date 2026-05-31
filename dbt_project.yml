@@ -1,0 +1,40 @@
+name: 'legacy_bank_pipeline'
+version: '1.0.0'
+config-version: 2
+
+profile: 'legacy_bank_pipeline'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Materialization strategy per medallion layer:
+#   bronze -> views   (cheap, raw passthrough + audit metadata)
+#   silver -> tables  (cleaned/standardized, queried often)
+#   gold   -> tables  (business-ready marts feeding BI)
+models:
+  legacy_bank_pipeline:
+    bronze:
+      +materialized: view
+      +schema: bronze
+    silver:
+      +materialized: table
+      +schema: silver
+    gold:
+      +materialized: table
+      +schema: gold
+
+seeds:
+  legacy_bank_pipeline:
+    +schema: raw
+    raw_transactions:
+      +column_types:
+        amount: varchar
+    raw_accounts:
+      +column_types:
+        current_balance: varchar

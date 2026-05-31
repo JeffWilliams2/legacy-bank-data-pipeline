@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: silver_customers
+    description: "Cleaned customers with parsed DOB and normalized KYC."
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+      - name: date_of_birth
+        description: "Parsed from 4 legacy formats; should never fail to parse."
+        tests: [not_null]
+      - name: kyc_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['VERIFIED', 'PENDING', 'REVIEW', 'UNKNOWN']
+
+  - name: silver_accounts
+    description: "Cleaned accounts with decoded type and numeric balance."
+    columns:
+      - name: account_id
+        tests: [not_null, unique]
+      - name: open_date
+        tests: [not_null]
+      - name: account_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Checking', 'Savings', 'Money Market', 'Certificate of Deposit', 'Line of Credit', 'Retirement (IRA)', 'Unknown']
+      - name: customer_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('silver_customers')
+                field: customer_id
+
+  - name: silver_transactions
+    description: "Cleaned transactions with derived signed_amount."
+    columns:
+      - name: txn_id
+        tests: [not_null, unique]
+      - name: txn_date
+        tests: [not_null]
+      - name: flow_direction
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['DEBIT', 'CREDIT']
+
+  - name: gold_aml_flags
+    description: "BSA/AML red-flag mart (CTR + structuring)."
+    columns:
+      - name: flag_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['CTR_OVER_10K', 'STRUCTURING_SUSPECT']
