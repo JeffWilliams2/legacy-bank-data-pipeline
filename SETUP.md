@@ -90,9 +90,6 @@ Or install the DuckDB CLI and run `duckdb warehouse.duckdb` then query the
 
 ## 6. (Optional) Generate the docs site
 
-dbt can auto-generate browsable documentation with a lineage graph — great for
-a portfolio screenshot.
-
 > **Note:** `dbt docs generate` is not supported by dbt-fusion (the binary at
 > `/Users/<you>/.local/bin/dbt`). Use the script below instead — it generates
 > `catalog.json` directly from the warehouse with no extra dependencies.
@@ -106,10 +103,6 @@ python3 -m http.server 8080 --directory target
 `generate_catalog.py` will also download `target/index.html` from the
 dbt-core GitHub repo on first run (requires internet). After that everything
 runs offline.
-
-The lineage graph (source → bronze → silver → gold) is a strong visual to
-screenshot for LinkedIn.
-
 ---
 
 ## Swapping to Snowflake (the production target)
